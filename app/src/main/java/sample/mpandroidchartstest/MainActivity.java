@@ -246,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
             mChart.invalidate();
 
         } else {
+
             // create a dataset and give it a type
             set1 = new CustomLineDataSet(values, "DataSet 1");
 
@@ -383,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
         graphBody.goal = GOAL + "";
 
         List<GraphBody.Weight> weights = new ArrayList<>();
-        Calendar cal = DateUtil.getSettingCalendar("20171104");
+        Calendar cal = DateUtil.getSettingCalendar("20171231");
 
         for (int i=0; i<entryNum; i++) {
 

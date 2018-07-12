@@ -43,140 +43,146 @@ public class CustomXAxisRenderer extends XAxisRenderer {
 
         int n = mAxis.isCenterAxisLabelsEnabled() ? 1 : 0;
 
-        double first = (Math.ceil(min / interval) * interval);
+        double first = Math.ceil(min / interval) * interval;
         double last = Math.floor(max / interval) * interval;
         if(mAxis.isCenterAxisLabelsEnabled()) {
             first -= interval;
-            last += interval;
         }
 
         double f, f2;
         int i;
 
-        if (interval != 0.0) {
+        Calendar calendar = Calendar.getInstance();
 
-            Calendar calendar = Calendar.getInstance();
+        switch (mTimeScale) {
 
-            switch (mTimeScale) {
+            case WEEK:
 
-                case WEEK:
-
-                    for (f = first; f <= last; f += mInterval) {
-                        calendar.clear();
-                        calendar.setTimeInMillis((long) f);
-                        if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
-                            first = f;
-                            for (f2 = f; f2 <= last; f2 += interval) {
-                                ++n;
-                            }
-                            break;
+                for (f = first; f <= last; f += mInterval) {
+                    calendar.clear();
+                    calendar.setTimeInMillis((long) f);
+                    if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
+                        first = f;
+                        for (f2 = f; f2 <= last; f2 += interval) {
+                            ++n;
                         }
+                        break;
                     }
+                }
 
-                    mAxis.mEntryCount = n;
+                mAxis.mEntryCount = n;
 
-                    if (mAxis.mEntries.length < n) {
-                        // Ensure stops contains at least numStops elements.
-                        mAxis.mEntries = new float[n];
-                    }
+                if (mAxis.mEntries.length < n) {
+                    // Ensure stops contains at least numStops elements.
+                    mAxis.mEntries = new float[n];
+                }
 
-                    for (f = first, i = 0; i < n; f += interval, ++i) {
+                for (f = first, i = 0; i < n; f += interval, ++i) {
 
-                        if (f == 0.0) // Fix for negative zero case (Where value == -0.0, and 0.0 == -0.0)
-                            f = 0.0;
+                    if (f == 0.0) // Fix for negative zero case (Where value == -0.0, and 0.0 == -0.0)
+                        f = 0.0;
 
-                        mAxis.mEntries[i] = (float) f;
-                    }
+                    mAxis.mEntries[i] = (float) f;
+                }
 
-                    break;
+                break;
 
-                case MONTH:
-                case QUARTER:
+            case MONTH:
+            case QUARTER:
+
+                calendar.clear();
+                calendar.setTimeInMillis((long) first);
+                int lastDay = calendar.get(Calendar.DAY_OF_MONTH);
+
+                first -= (lastDay * mInterval);
+
+                f = first;
+                while (f <= last) {
+                    ++n;
 
                     calendar.clear();
-                    calendar.setTimeInMillis((long) first);
-                    int lastDay = calendar.get(Calendar.DAY_OF_MONTH) -1;
+                    calendar.setTimeInMillis((long)f);
+                    f += calendar.getActualMaximum(Calendar.DAY_OF_MONTH) * mInterval;
+                }
 
-                    first -= (lastDay * mInterval);
+                mAxis.mEntryCount = n;
 
-                    f = first;
-                    while (f <= last) {
-                        ++n;
+                if (mAxis.mEntries.length < n) {
+                    // Ensure stops contains at least numStops elements.
+                    mAxis.mEntries = new float[n];
+                }
 
-                        calendar.clear();
-                        calendar.setTimeInMillis((long)f);
-                        f += calendar.getActualMaximum(Calendar.DAY_OF_MONTH) * mInterval;
-                    }
-
-                    mAxis.mEntryCount = n;
-
-                    if (mAxis.mEntries.length < n) {
-                        // Ensure stops contains at least numStops elements.
-                        mAxis.mEntries = new float[n];
-                    }
-
-                    i = 0;
-                    f = first;
-                    while (f <= last) {
-                        mAxis.mEntries[i] = (float) f;
-                        i++;
-
-                        calendar.clear();
-                        calendar.setTimeInMillis((long)f);
-                        f += calendar.getActualMaximum(Calendar.DAY_OF_MONTH) * mInterval;
-                    }
-
-                    break;
-
-                case YEAR:
+                i = 0;
+                f = first;
+                while (f <= last) {
+                    mAxis.mEntries[i] = (float) f;
+                    i++;
 
                     calendar.clear();
-                    calendar.setTimeInMillis((long) first);
-                    int year = calendar.get(Calendar.YEAR);
+                    calendar.setTimeInMillis((long)f);
+                    f += calendar.getActualMaximum(Calendar.DAY_OF_MONTH) * mInterval;
+                }
 
-                    Calendar cal = Calendar.getInstance();
-                    cal.clear();
-                    cal.set(Calendar.YEAR, year);
-                    cal.set(Calendar.MONTH, 0);
-                    cal.set(Calendar.DAY_OF_MONTH, 1);
-                    cal.set(Calendar.HOUR_OF_DAY, 0);
-                    cal.set(Calendar.MINUTE, 0);
-                    cal.set(Calendar.SECOND, 0);
-                    cal.set(Calendar.MILLISECOND, 0);
+                break;
 
-                    float days = (Math.abs(DateUtil.getDiffDays(calendar, cal))) -1;
+            case YEAR:
 
-                    first -= days * mInterval;
-                    f = first;
-                    while (f <= max) {
-                        ++n;
+                calendar.clear();
+                calendar.setTimeInMillis((long) first);
+                int year = calendar.get(Calendar.YEAR);
+                Log.i("from", DateUtil.getCalendarFormat("yyyy/MM/dd",calendar));
 
-                        calendar.clear();
-                        calendar.setTimeInMillis((long)f);
-                        f += (mTimeScale.getTerm() +1) * mInterval;
-                    }
+                Calendar cal = Calendar.getInstance();
+                cal.clear();
+                cal.set(Calendar.YEAR, year);
+                cal.set(Calendar.MONTH, 0);
+                cal.set(Calendar.DAY_OF_MONTH, 1);
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                cal.set(Calendar.SECOND, 0);
+                cal.set(Calendar.MILLISECOND, 0);
+                Log.i("to", DateUtil.getCalendarFormat("yyyy/MM/dd", cal));
 
-                    mAxis.mEntryCount = n;
+                int days = (Math.abs(DateUtil.getDiffDays(calendar, cal)));
+                Log.i("days", days+"");
 
-                    if (mAxis.mEntries.length < n) {
-                        // Ensure stops contains at least numStops elements.
-                        mAxis.mEntries = new float[n];
-                    }
+                first -= days * mInterval;
+                cal.clear();
+                cal.setTimeInMillis((long) first);
+                Log.i("first", DateUtil.getCalendarFormat("yyyy/MM/dd", cal));
 
-                    i = 0;
-                    f = first;
-                    while (f <= max) {
-                        mAxis.mEntries[i] = (float) f;
-                        i++;
+                cal.clear();
+                cal.setTimeInMillis((long) last);
+                Log.i("last", DateUtil.getCalendarFormat("yyyy/MM/dd", cal));
 
-                        calendar.clear();
-                        calendar.setTimeInMillis((long) f);
-                        f += (mTimeScale.getTerm()) * mInterval;
-                    }
+                f = first;
+                while (f <= last) {
+                    ++n;
 
-                    break;
-            }
+                    calendar.clear();
+                    calendar.setTimeInMillis((long)f);
+                    f += (mTimeScale.getTerm() +1) * mInterval;
+                }
 
+                mAxis.mEntryCount = n;
+
+                if (mAxis.mEntries.length < n) {
+                    // Ensure stops contains at least numStops elements.
+                    mAxis.mEntries = new float[n];
+                }
+
+                i = 0;
+                f = first;
+                while (f <= last) {
+                    mAxis.mEntries[i] = (float) f;
+                    i++;
+
+                    calendar.clear();
+                    calendar.setTimeInMillis((long) f);
+                    f += (mTimeScale.getTerm()) * mInterval;
+                }
+
+                break;
         }
 
 
@@ -190,9 +196,9 @@ public class CustomXAxisRenderer extends XAxisRenderer {
 
         if (mAxis.isCenterAxisLabelsEnabled()) {
 
-            if (mAxis.mCenteredEntries.length < n) {
+            //if (mAxis.mCenteredEntries.length < n) {
                 mAxis.mCenteredEntries = new float[n];
-            }
+            //}
 
             float offset = (float)interval / 2f;
 

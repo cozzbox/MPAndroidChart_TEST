@@ -244,9 +244,6 @@ public class DateUtil {
 
 
     public static int getDiffDays(Calendar from, Calendar to) {
-        Log.i("from", DateUtil.getCalendarFormat("yyyy/MM/dd", from));
-        Log.i("to", DateUtil.getCalendarFormat("yyyy/MM/dd", to));
-
         long diff = from.getTimeInMillis() - to.getTimeInMillis();
         int interval = 1000 * 60 * 60 * 24;
         return (int) (diff / interval);
