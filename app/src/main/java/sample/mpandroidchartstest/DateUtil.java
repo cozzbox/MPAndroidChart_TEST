@@ -244,8 +244,18 @@ public class DateUtil {
 
 
     public static int getDiffDays(Calendar from, Calendar to) {
-        long diff = from.getTimeInMillis() - to.getTimeInMillis();
+        float diff = Math.abs(from.getTimeInMillis() - to.getTimeInMillis());
         int interval = 1000 * 60 * 60 * 24;
         return (int) (diff / interval);
+    }
+
+    public static int getDiffMonths(Calendar from, Calendar to) {
+        int count = 0;
+        while (from.before(to)) {
+            from.add(Calendar.MONTH, 1);
+            count++;
+        }
+
+        return count;
     }
 }

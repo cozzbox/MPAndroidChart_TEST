@@ -43,16 +43,37 @@ public class CustomXAxisRenderer extends XAxisRenderer {
 
         int n = mAxis.isCenterAxisLabelsEnabled() ? 1 : 0;
 
-        double first = Math.ceil(min / interval) * interval;
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+        /*
+        double first = Math.floor(min / interval) * interval;
         double last = Math.floor(max / interval) * interval;
         if(mAxis.isCenterAxisLabelsEnabled()) {
             first -= interval;
         }
+        */
+        double first = Math.floor(min / mInterval) * mInterval;
+        double last = Math.floor(max / mInterval) * mInterval;
+
+//        Calendar cale = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+//        cale.setTimeInMillis((long) min);
+//        Log.i("min", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss",cale));
+//        cale.clear();
+//        cale.setTimeInMillis((long)max);
+//        Log.i("max", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss",cale));
+//        cale.clear();
+//        cale.setTimeInMillis((long) first);
+//        Log.i("first", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss",cale));
+//        cale.clear();
+//        cale.setTimeInMillis((long) last);
+//        Log.i("last", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss",cale));
+
+        mAxis.mEntries = new float[]{};
+        mAxis.mCenteredEntries = new float[]{};
+        mAxis.mEntryCount = 0;
 
         double f, f2;
         int i;
-
-        Calendar calendar = Calendar.getInstance();
 
         switch (mTimeScale) {
 
@@ -92,9 +113,14 @@ public class CustomXAxisRenderer extends XAxisRenderer {
 
                 calendar.clear();
                 calendar.setTimeInMillis((long) first);
-                int lastDay = calendar.get(Calendar.DAY_OF_MONTH);
+                int lastDay = calendar.get(Calendar.DAY_OF_MONTH) -1;
+                first -= lastDay * mInterval;
 
-                first -= (lastDay * mInterval);
+                calendar.clear();
+                calendar.setTimeInMillis((long) last);
+                lastDay = calendar.get(Calendar.DAY_OF_MONTH) -1;
+                last -= (lastDay * mInterval);
+
 
                 f = first;
                 while (f <= last) {
@@ -132,7 +158,7 @@ public class CustomXAxisRenderer extends XAxisRenderer {
                 int year = calendar.get(Calendar.YEAR);
                 Log.i("from", DateUtil.getCalendarFormat("yyyy/MM/dd",calendar));
 
-                Calendar cal = Calendar.getInstance();
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                 cal.clear();
                 cal.set(Calendar.YEAR, year);
                 cal.set(Calendar.MONTH, 0);
@@ -161,7 +187,7 @@ public class CustomXAxisRenderer extends XAxisRenderer {
 
                     calendar.clear();
                     calendar.setTimeInMillis((long)f);
-                    f += (mTimeScale.getTerm() +1) * mInterval;
+                    f += (mTimeScale.getTerm()) * mInterval;
                 }
 
                 mAxis.mEntryCount = n;
@@ -185,8 +211,6 @@ public class CustomXAxisRenderer extends XAxisRenderer {
                 break;
         }
 
-
-
         // set decimals
         if (interval < 1) {
             mAxis.mDecimals = (int) Math.ceil(-Math.log10(interval));
@@ -196,9 +220,9 @@ public class CustomXAxisRenderer extends XAxisRenderer {
 
         if (mAxis.isCenterAxisLabelsEnabled()) {
 
-            //if (mAxis.mCenteredEntries.length < n) {
+            if (mAxis.mCenteredEntries.length < n) {
                 mAxis.mCenteredEntries = new float[n];
-            //}
+            }
 
             float offset = (float)interval / 2f;
 
@@ -206,7 +230,6 @@ public class CustomXAxisRenderer extends XAxisRenderer {
                 mAxis.mCenteredEntries[i] = mAxis.mEntries[i] + offset;
             }
         }
-
 
     }
 

@@ -5,7 +5,7 @@ public enum TimeScale {
     WEEK(7),
     MONTH(30),
     QUARTER(30),
-    YEAR(364);
+    YEAR(365);
 
     private final double term;
 

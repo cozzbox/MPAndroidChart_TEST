@@ -384,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
         graphBody.goal = GOAL + "";
 
         List<GraphBody.Weight> weights = new ArrayList<>();
-        Calendar cal = DateUtil.getSettingCalendar("20171231");
+        Calendar cal = DateUtil.getSettingCalendar("20171116");
 
         for (int i=0; i<entryNum; i++) {
 
