@@ -1,8 +1,10 @@
 package sample.mpandroidchartstest.charts;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
@@ -11,9 +13,14 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.IDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.jobs.AnimatedZoomJob;
+import com.github.mikephil.charting.utils.MPPointD;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
+import sample.mpandroidchartstest.DateUtil;
 import sample.mpandroidchartstest.R;
 import sample.mpandroidchartstest.TimeScale;
 import sample.mpandroidchartstest.components.CustomMarkerView;
@@ -26,7 +33,12 @@ import sample.mpandroidchartstest.renderer.CustomYAxisRenderer;
 
 public class CustomLineChart extends LineChart {
 
+    private static final int mGraphColor = Color.parseColor("#03CC66");
+    private static final int mHighLightColor = Color.parseColor("#878787");
     private static final int mGridColor = Color.parseColor("#E3E2E2");
+    private static final int mClearColor = Color.parseColor("#FF000000");
+
+    private static final float mInterval = 1000 * 60 * 60 * 24;
 
     private TimeScale mTimeScale = TimeScale.WEEK;
     public void setTimeScale(TimeScale timeScale) {
@@ -34,7 +46,20 @@ public class CustomLineChart extends LineChart {
         if (mXAxisRenderer instanceof CustomXAxisRenderer) {
             ((CustomXAxisRenderer) mXAxisRenderer).mTimeScale = mTimeScale;
         }
+
+        super.mXAxis = this.mXAxis;
+
+        zoomAndCenterAnimated(
+                (float) (mXAxis.mAxisRange / (mTimeScale.getXRange() * mInterval)),
+                0,
+                0,
+                1,
+                YAxis.AxisDependency.RIGHT,
+                50);
+
     }
+
+    private LineData mLineData;
 
 //    private long mReference = 0;
 //    public void setReference(long reference) {
@@ -102,7 +127,7 @@ public class CustomLineChart extends LineChart {
         mAxisRight.setDrawAxisLine(false);
         mAxisRight.setDrawGridLines(true);
         mAxisRight.setGridColor(mGridColor);
-        mAxisRight.setGridLineWidth(0.3f);
+        mAxisRight.setGridLineWidth(0.5f);
         mAxisRight.setDrawLabels(true);
         mAxisRight.setSpaceTop(35f);
         mAxisRight.setSpaceBottom(25f);
@@ -124,65 +149,110 @@ public class CustomLineChart extends LineChart {
 
     public void setData(ArrayList<Entry> values) {
 
-//        if (getData() != null && getData().getDataSetCount() > 0) {
-//            CustomLineDataSet item;
-//
-//            for (int i=0; i<getData().getDataSetCount(); i++) {
-//                item = (CustomLineDataSet) getData().getDataSetByIndex(i);
-//                item.setValues(values);
-//            }
-//
-//
-//            getData().notifyDataChanged();
-//            notifyDataSetChanged();
-//            invalidate();
-//
-//        } else {
-            CustomLineDataSet item = new CustomLineDataSet(values, "LineChart");
+        CustomLineDataSet item = new CustomLineDataSet(values, "LineChart");
 
-            item.setDrawIcons(false);
-            item.setColor(Color.parseColor("#03CC66"));
-            item.setLineWidth(2.5f);
-            item.setCircleColor(Color.parseColor("#03CC66"));
-            item.setCircleRadius(4f);
-            item.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
-            item.setValueTextSize(9f);
-            item.setDrawCircleHole(true);
-            item.setDrawCircles(true);
-            item.setDrawFilled(false);
-            item.setDrawValues(false);
-            item.setAxisDependency(YAxis.AxisDependency.RIGHT);
-            item.setHighlightLineWidth(1f);
-            item.setHighLightColor(Color.parseColor("#878787"));
-            item.setDrawHighlightIndicators(true);
-            item.setDrawIcons(true);
+        item.setDrawIcons(false);
+        item.setColor(mGraphColor);
+        item.setLineWidth(2.5f);
+        item.setCircleColor(mGraphColor);
+        item.setCircleRadius(4f);
+        item.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
+        item.setValueTextSize(9f);
+        item.setDrawCircleHole(true);
+        item.setDrawCircles(true);
+        item.setDrawFilled(false);
+        item.setDrawValues(false);
+        item.setAxisDependency(YAxis.AxisDependency.RIGHT);
+        item.setHighlightLineWidth(1f);
+        item.setHighLightColor(mHighLightColor);
+        item.setDrawHighlightIndicators(true);
+        item.setDrawIcons(true);
 
-            setRenderer(new CustomLineChartRenderer(this, getAnimator(), getViewPortHandler()));
+        setRenderer(new CustomLineChartRenderer(this, getAnimator(), getViewPortHandler()));
 
-            //TODO オーバー領域の描画を作成
-            float interval = 1000 * 60 * 60 * 24;
-            float xMin = (float)(item.getXMin() - (TimeScale.QUARTER.getTerm() * interval));
-            float xMax = (float)(item.getXMax() + (TimeScale.QUARTER.getTerm() * interval));
+        //TODO オーバー領域の描画を作成
+        float interval = 1000 * 60 * 60 * 24;
+        float xMin = (float)(item.getXMin() - (TimeScale.QUARTER.getTerm() * interval));
+        float xMax = (float)(item.getXMax() + (TimeScale.QUARTER.getTerm() * interval));
 
-            float ave = (item.getYMin() + item.getYMax()) / 2;
-            Zone gz = new Zone(ave, ave, Color.RED);
+        float ave = (item.getYMin() + item.getYMax()) / 2;
+        Zone gz = new Zone(ave, ave, mClearColor);
 
-            ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
-            dataSets.add(gz.origin(xMin, xMax).getDataSet());
-            dataSets.add(item); // add the chart data
+        ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+        dataSets.add(gz.origin(xMin, xMax).getDataSet());
+        dataSets.add(item); // add the chart data
 
-            // create a data object with the datasets
-            LineData data = new LineData(dataSets);
+        // create a data object with the datasets
+        mLineData = new LineData(dataSets);
 
-            // set data
-            super.setData(data);
-//        }
-
+        // set data
+        super.setData(mLineData);
     }
 
-    public void setData(CustomLineDataSet chartData) {
+    public void moveToInitPosition() {
+        zoom((float) (mXAxis.mAxisRange / (mTimeScale.getXRange() * mInterval)), 0, 0, 0);
+        moveViewToX(maxVisibleX());
+    }
 
+    /*
+    // calculate visible area
+    private var maxVisibleX: Double {
+        guard _data != nil else { return 0 }
+        let today = Date()
+        return visibleOffset(date: today)
+    }
+    private var minVisibleX: Double {
+        guard let data = _data else { return 0 }
+        let earliestDay = Date.timeIntervalSinceToday(timeInterval: data.availableXMin * Date.aDayTimeInterval)
+        return visibleOffset(date: earliestDay) + data.availableXMin
+    }
+    private func visibleOffset(date: Date) -> Double {
+        let left, offset: Double
+        switch timeScale {
+        case .week:
+            left = Double(Calendar.getWeekday(date).value)
+            offset = (timeScale.xRange - timeScale.double) / 2
+        case .month, .quarter:
+            left = Double(Calendar.getDay(date) - 1)
+            offset = (timeScale.xRange - Double(Calendar.getNumberOfDaysIn(.month, date: date))) / 2
+        case .year:
+            left = Double(Calendar.getDaysLeftInYear(date) - 1)
+            offset = (timeScale.xRange - timeScale.double) / 2
+        }
+        return -left-offset
+    }
+     */
 
+    private float maxVisibleX() {
+        if (mLineData == null) return 0f;
+        Calendar calendar = Calendar.getInstance();
+        return visibleOffset(calendar);
+    }
+    private float visibleOffset(Calendar calendar) {
+        float target, left, offset;
+
+        target = calendar.getTimeInMillis();
+        left = 0;
+        offset = 0;
+
+        switch (mTimeScale) {
+            case WEEK:
+                left = (calendar.get(Calendar.DAY_OF_WEEK) -1) * mInterval;
+                offset = (float) (mTimeScale.getXRange() - mTimeScale.getTerm()) /2;
+                break;
+
+            case MONTH:
+            case QUARTER:
+                //TODO 動作未確認
+                left = calendar.get(Calendar.DAY_OF_MONTH) -1;
+                offset = (float) (mTimeScale.getXRange() - mTimeScale.getTerm()) /2;
+                break;
+
+            case YEAR:
+                //TODO 実装途中
+                break;
+        }
+        return target - (left + offset);
     }
 
 

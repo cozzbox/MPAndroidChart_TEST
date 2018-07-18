@@ -16,4 +16,8 @@ public enum TimeScale {
     public double getTerm() {
         return term;
     }
+
+    public double getXRange() {
+        return term * 1.15;
+    }
 }

@@ -37,8 +37,7 @@ public class Zone {
         list.add(new Entry(mXMax, mYMax));
 
         LineDataSet dataSet = new LineDataSet(list, "");
-        dataSet.setLineWidth(1);
-        //dataSet.setColor(mColor, 0);
+        dataSet.setVisible(false);
         dataSet.setHighlightEnabled(false);
         dataSet.setDrawValues(false);
         dataSet.setDrawCircles(false);

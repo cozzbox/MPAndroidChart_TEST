@@ -57,7 +57,7 @@ import static com.github.mikephil.charting.components.LimitLine.LimitLabelPositi
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int TERM = 380;
+    private static final int TERM = 180;
     private static final int GOAL = 55;
 
     private CustomLineChart mChart;
@@ -90,9 +90,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // ゴールライン
+        setGoal();
+
         // データ・セット
         setData();
 
+        mChart.moveToInitPosition();
 
         // set an alternative background color
         //mChart.setBackgroundColor(Color.LTGRAY);
@@ -100,9 +104,6 @@ public class MainActivity extends AppCompatActivity {
         // set the marker to the chart
 //        IMarker marker = new CustomMarkerView(this, R.layout.custom_marker_view_layout);
 //        mChart.setMarker(marker);
-
-        // ゴールライン
-        setGoal();
 
         //mChart.setVisibleXRangeMaximum(7);
 
