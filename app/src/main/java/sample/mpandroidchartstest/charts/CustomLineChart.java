@@ -1,21 +1,24 @@
 package sample.mpandroidchartstest.charts;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.AttributeSet;
-import android.util.Log;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.renderer.LineChartRenderer;
-import com.github.mikephil.charting.utils.MPPointF;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.IDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
-import sample.mpandroidchartstest.Constain;
-import sample.mpandroidchartstest.DateUtil;
+import java.util.ArrayList;
+
 import sample.mpandroidchartstest.R;
 import sample.mpandroidchartstest.TimeScale;
 import sample.mpandroidchartstest.components.CustomMarkerView;
+import sample.mpandroidchartstest.data.CustomLineDataSet;
+import sample.mpandroidchartstest.data.Zone;
 import sample.mpandroidchartstest.formatter.CustomAxisFormatter;
 import sample.mpandroidchartstest.renderer.CustomLineChartRenderer;
 import sample.mpandroidchartstest.renderer.CustomXAxisRenderer;
@@ -118,5 +121,69 @@ public class CustomLineChart extends LineChart {
         mMarker = new CustomMarkerView(getContext(), R.layout.custom_marker_view_layout);
 
     }
+
+    public void setData(ArrayList<Entry> values) {
+
+//        if (getData() != null && getData().getDataSetCount() > 0) {
+//            CustomLineDataSet item;
+//
+//            for (int i=0; i<getData().getDataSetCount(); i++) {
+//                item = (CustomLineDataSet) getData().getDataSetByIndex(i);
+//                item.setValues(values);
+//            }
+//
+//
+//            getData().notifyDataChanged();
+//            notifyDataSetChanged();
+//            invalidate();
+//
+//        } else {
+            CustomLineDataSet item = new CustomLineDataSet(values, "LineChart");
+
+            item.setDrawIcons(false);
+            item.setColor(Color.parseColor("#03CC66"));
+            item.setLineWidth(2.5f);
+            item.setCircleColor(Color.parseColor("#03CC66"));
+            item.setCircleRadius(4f);
+            item.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
+            item.setValueTextSize(9f);
+            item.setDrawCircleHole(true);
+            item.setDrawCircles(true);
+            item.setDrawFilled(false);
+            item.setDrawValues(false);
+            item.setAxisDependency(YAxis.AxisDependency.RIGHT);
+            item.setHighlightLineWidth(1f);
+            item.setHighLightColor(Color.parseColor("#878787"));
+            item.setDrawHighlightIndicators(true);
+            item.setDrawIcons(true);
+
+            setRenderer(new CustomLineChartRenderer(this, getAnimator(), getViewPortHandler()));
+
+            //TODO オーバー領域の描画を作成
+            float interval = 1000 * 60 * 60 * 24;
+            float xMin = (float)(item.getXMin() - (TimeScale.QUARTER.getTerm() * interval));
+            float xMax = (float)(item.getXMax() + (TimeScale.QUARTER.getTerm() * interval));
+
+            float ave = (item.getYMin() + item.getYMax()) / 2;
+            Zone gz = new Zone(ave, ave, Color.RED);
+
+            ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+            dataSets.add(gz.origin(xMin, xMax).getDataSet());
+            dataSets.add(item); // add the chart data
+
+            // create a data object with the datasets
+            LineData data = new LineData(dataSets);
+
+            // set data
+            super.setData(data);
+//        }
+
+    }
+
+    public void setData(CustomLineDataSet chartData) {
+
+
+    }
+
 
 }

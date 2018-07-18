@@ -57,7 +57,7 @@ import static com.github.mikephil.charting.components.LimitLine.LimitLabelPositi
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int TERM = 180;
+    private static final int TERM = 380;
     private static final int GOAL = 55;
 
     private CustomLineChart mChart;
@@ -216,143 +216,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setData() {
-
         GraphBody entity = createTestData(TERM);
         ArrayList<Entry> values = generateGraphData(entity);
-
-//
-//        for (int i=0; i<count; i++) {
-//            float val = (float)(Math.random() * range) + 195;
-//            values.add(new Entry(i, val));
-//        }
-
-        CustomLineDataSet set1, set2, set3, set4;
-
-        if (mChart.getData() != null &&
-                mChart.getData().getDataSetCount() > 0) {
-            set1 = (CustomLineDataSet) mChart.getData().getDataSetByIndex(0);
-            set1.setValues(values);
-
-//            if (mChart.getVisibleXRange() <= 30) {
-//                set1.setDrawCircleHole(true);
-//                set1.setDrawCircles(true);
-//            } else {
-//                set1.setDrawCircleHole(false);
-//                set1.setDrawCircles(false);
-//            }
-
-            mChart.getData().notifyDataChanged();
-            mChart.notifyDataSetChanged();
-            mChart.invalidate();
-
-        } else {
-
-            // create a dataset and give it a type
-            set1 = new CustomLineDataSet(values, "DataSet 1");
-
-            set1.setDrawIcons(false);
-
-            set1.setColor(Color.parseColor("#03CC66"));
-            set1.setLineWidth(2.5f);
-            set1.setCircleColor(Color.parseColor("#03CC66"));
-            set1.setCircleRadius(4f);
-            set1.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
-            set1.setValueTextSize(9f);
-            set1.setDrawCircleHole(true);
-            set1.setDrawCircles(true);
-            set1.setDrawFilled(false);
-            set1.setDrawValues(false);
-//            set1.setFormLineWidth(1f);
-//            set1.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
-//            set1.setFormSize(5.f);
-//
-//            if (Utils.getSDKInt() >= 18) {
-//                // fill drawable only supported on api level 18 and above
-//                Drawable drawable = ContextCompat.getDrawable(this, R.drawable.fade_red);
-//                set1.setFillDrawable(drawable);
-//            }
-//            else {
-//                set1.setFillColor(Color.BLACK);
-//            }
-            set1.setAxisDependency(YAxis.AxisDependency.RIGHT);
-            set1.setHighlightLineWidth(1f);
-            set1.setHighLightColor(Color.parseColor("#878787"));
-            set1.setDrawHighlightIndicators(true);
-            set1.setDrawIcons(true);
-
-            /*
-            List<Entry> list = new ArrayList<Entry>();
-            list.add(new Entry(0,192));
-            list.add(new Entry(count, 192));
-            set2 = new CustomLineDataSet(list, "Range");
-            set2.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
-            set2.setLineWidth(0);
-            set2.setDrawCircles(false);
-            set2.setDrawCircleHole(false);
-            set2.setDrawFilled(true);
-            set2.setDrawValues(false);
-            set2.setFillColor(Color.parseColor("#C5EDFF"));
-            set2.setAxisDependency(YAxis.AxisDependency.RIGHT);
-            set2.setDrawHighlightIndicators(false);
-            set2.setDrawHorizontalHighlightIndicator(false);
-            set2.setDrawVerticalHighlightIndicator(false);
-            set2.setHighlightEnabled(false);
-
-            List<Entry> list2 = new ArrayList<Entry>();
-            list2.add(new Entry(0,198));
-            list2.add(new Entry(count, 198));
-            set3 = new CustomLineDataSet(list2, "Range2");
-            set3.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
-            set3.setLineWidth(0);
-            set3.setDrawCircles(false);
-            set3.setDrawCircleHole(false);
-            set3.setDrawFilled(true);
-            set3.setDrawValues(false);
-            set3.setFillColor(Color.parseColor("#FFA3A3"));
-            set3.setAxisDependency(YAxis.AxisDependency.RIGHT);
-            set3.setDrawHighlightIndicators(false);
-            set3.setDrawVerticalHighlightIndicator(false);
-            set3.setDrawHorizontalHighlightIndicator(false);
-            set3.setHighlightEnabled(false);
-
-            set2.setFillFormatter(new CustomFillFormatter(set3));
-
-            List<Entry> list3 = new ArrayList<Entry>();
-            list3.add(new Entry(mChart.getXAxis().getAxisMinimum(), 201));
-            list3.add(new Entry(count, 201));
-            set4 = new CustomLineDataSet(list3, "Range3");
-            set4.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
-            set4.setLineWidth(0);
-            set4.setDrawCircles(false);
-            set4.setDrawCircleHole(false);
-            set4.setDrawFilled(true);
-            set4.setDrawValues(false);
-            set4.setAxisDependency(YAxis.AxisDependency.RIGHT);
-            set4.setDrawHighlightIndicators(false);
-            set4.setDrawHorizontalHighlightIndicator(false);
-            set4.setDrawVerticalHighlightIndicator(false);
-            set4.setHighlightEnabled(false);
-
-            set3.setFillFormatter(new CustomFillFormatter(set4));
-            */
-
-            mChart.setRenderer(new CustomLineChartRenderer(mChart, mChart.getAnimator(), mChart.getViewPortHandler()));
-
-            ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
-//            dataSets.add(set3);
-//            dataSets.add(set2);
-            dataSets.add(set1); // add the datasets
-
-            // create a data object with the datasets
-            LineData data = new LineData(dataSets);
-
-            // set data
-            mChart.setData(data);
-        }
-
+        mChart.setData(values);
     }
 
-    // generate
+    // data generate
     private ArrayList<Entry> generateGraphData(GraphBody data) {
 
         ArrayList<Entry> list = new ArrayList<>();
@@ -360,18 +229,12 @@ public class MainActivity extends AppCompatActivity {
         for (int i=0; i<data.weight.size(); i++) {
 
             GraphBody.Weight weight = data.weight.get(i);
-
             Calendar cal = DateUtil.getSettingCalendar((weight.record_date).replaceAll("-", ""));
-            //Log.i("cal", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss", cal));
-
             long timestamp = cal.getTimeInMillis();
-
             float value = Float.parseFloat(weight.value);
 
             list.add(new Entry(timestamp, value));
         }
-
-        //mChart.setReference(mReference);
 
         return list;
     }
@@ -384,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         graphBody.goal = GOAL + "";
 
         List<GraphBody.Weight> weights = new ArrayList<>();
-        Calendar cal = DateUtil.getSettingCalendar("20171116");
+        Calendar cal = DateUtil.getSettingCalendar("20171228");
 
         for (int i=0; i<entryNum; i++) {
 

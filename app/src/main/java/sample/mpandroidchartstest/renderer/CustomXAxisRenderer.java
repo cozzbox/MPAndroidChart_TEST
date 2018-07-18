@@ -10,18 +10,9 @@ import com.github.mikephil.charting.utils.Transformer;
 import com.github.mikephil.charting.utils.Utils;
 import com.github.mikephil.charting.utils.ViewPortHandler;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 import java.util.TimeZone;
 
-import sample.mpandroidchartstest.Constain;
 import sample.mpandroidchartstest.DateUtil;
 import sample.mpandroidchartstest.TimeScale;
 import sample.mpandroidchartstest.formatter.CustomAxisFormatter;
@@ -30,7 +21,7 @@ public class CustomXAxisRenderer extends XAxisRenderer {
 
     private static final long mInterval = 60 * 60 * 24 * 1000;
 
-    public TimeScale mTimeScale = TimeScale.YEAR;
+    public TimeScale mTimeScale = TimeScale.WEEK;
 
     public CustomXAxisRenderer(ViewPortHandler viewPortHandler, XAxis xAxis, Transformer trans) {
         super(viewPortHandler, xAxis, trans);
@@ -39,34 +30,16 @@ public class CustomXAxisRenderer extends XAxisRenderer {
     @Override
     protected void computeAxisValues(float min, float max) {
 
-        double interval = mInterval * mTimeScale.getTerm();
+        double interval = (mTimeScale != TimeScale.QUARTER)
+                ? mInterval * mTimeScale.getTerm()
+                : mInterval * TimeScale.MONTH.getTerm();    // QUATERとMONTHの違いはzoomで調整する
 
         int n = mAxis.isCenterAxisLabelsEnabled() ? 1 : 0;
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
-        /*
-        double first = Math.floor(min / interval) * interval;
-        double last = Math.floor(max / interval) * interval;
-        if(mAxis.isCenterAxisLabelsEnabled()) {
-            first -= interval;
-        }
-        */
         double first = Math.floor(min / mInterval) * mInterval;
         double last = Math.floor(max / mInterval) * mInterval;
-
-//        Calendar cale = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-//        cale.setTimeInMillis((long) min);
-//        Log.i("min", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss",cale));
-//        cale.clear();
-//        cale.setTimeInMillis((long)max);
-//        Log.i("max", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss",cale));
-//        cale.clear();
-//        cale.setTimeInMillis((long) first);
-//        Log.i("first", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss",cale));
-//        cale.clear();
-//        cale.setTimeInMillis((long) last);
-//        Log.i("last", DateUtil.getCalendarFormat("yyyy/MM/dd HH:mm:ss",cale));
 
         mAxis.mEntries = new float[]{};
         mAxis.mCenteredEntries = new float[]{};
@@ -156,7 +129,6 @@ public class CustomXAxisRenderer extends XAxisRenderer {
                 calendar.clear();
                 calendar.setTimeInMillis((long) first);
                 int year = calendar.get(Calendar.YEAR);
-                Log.i("from", DateUtil.getCalendarFormat("yyyy/MM/dd",calendar));
 
                 Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                 cal.clear();
@@ -167,19 +139,15 @@ public class CustomXAxisRenderer extends XAxisRenderer {
                 cal.set(Calendar.MINUTE, 0);
                 cal.set(Calendar.SECOND, 0);
                 cal.set(Calendar.MILLISECOND, 0);
-                Log.i("to", DateUtil.getCalendarFormat("yyyy/MM/dd", cal));
 
                 int days = (Math.abs(DateUtil.getDiffDays(calendar, cal)));
-                Log.i("days", days+"");
 
                 first -= days * mInterval;
                 cal.clear();
                 cal.setTimeInMillis((long) first);
-                Log.i("first", DateUtil.getCalendarFormat("yyyy/MM/dd", cal));
 
                 cal.clear();
                 cal.setTimeInMillis((long) last);
-                Log.i("last", DateUtil.getCalendarFormat("yyyy/MM/dd", cal));
 
                 f = first;
                 while (f <= last) {

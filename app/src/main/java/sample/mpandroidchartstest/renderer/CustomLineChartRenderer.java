@@ -33,7 +33,7 @@ public class CustomLineChartRenderer extends LineChartRenderer {
         mCirclePaintInner.setStyle(Paint.Style.FILL);
         mCirclePaintInner.setColor(Color.WHITE);
     }
-
+/*
     //---------------------------------------
     // ゴール領域の塗りつぶしに利用   ここから
     //---------------------------------------
@@ -161,6 +161,6 @@ public class CustomLineChartRenderer extends LineChartRenderer {
     //---------------------------------------
     // ゴール領域の塗りつぶしに利用   ここまで
     //---------------------------------------
-
+*/
 
 }
