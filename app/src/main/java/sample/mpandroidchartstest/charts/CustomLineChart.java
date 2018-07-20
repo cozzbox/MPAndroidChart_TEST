@@ -11,9 +11,12 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.jobs.AnimatedZoomJob;
+import com.github.mikephil.charting.listener.BarLineChartTouchListener;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.MPPointD;
 
 import java.util.ArrayList;
@@ -49,7 +52,74 @@ public class CustomLineChart extends LineChart {
             ((CustomXAxisRenderer) mXAxisRenderer).mTimeScale = mTimeScale;
         }
 
-        moveToPosition();
+        // アニメーションを完全に止めてからscaleを変更しないと上手く動かない
+        if (mChartTouchListener instanceof BarLineChartTouchListener) {
+            ((BarLineChartTouchListener) mChartTouchListener).stopDeceleration();
+        }
+
+        float center = 0f;
+        if (selectHighlightX != 0) {
+            // highlightがあればxを中心にする
+            center = selectHighlightX;
+
+        } else {
+            center = (getLowestVisibleX() + getHighestVisibleX()) / 2;
+
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            calendar.setTimeInMillis((long) center);
+
+            float offset = 0;
+            float left = 0;
+            float num = 0;
+            switch (mTimeScale) {
+
+                case WEEK:
+
+                    left = (calendar.get(Calendar.DAY_OF_WEEK) -2) * mInterval;
+                    offset = Math.abs(center % mInterval);
+                    center += (3.5f * mInterval) - (left + offset);
+                    break;
+
+                case MONTH:
+                case QUARTER:
+
+                    calendar.set(Calendar.HOUR_OF_DAY, 0);
+                    calendar.set(Calendar.MINUTE, 0);
+                    calendar.set(Calendar.SECOND, 0);
+                    calendar.set(Calendar.MILLISECOND, 0);
+
+                    num = calendar.getActualMaximum(Calendar.DAY_OF_MONTH) * mInterval;
+                    left = (calendar.get(Calendar.DAY_OF_MONTH)) * mInterval;
+                    center += (num / 2) - left + ((num % 2) * mInterval);
+                    break;
+
+                case YEAR:
+
+                    int year = calendar.get(Calendar.YEAR);
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                    cal.set(Calendar.YEAR, year);
+                    cal.set(Calendar.MONTH, 0);
+                    cal.set(Calendar.DAY_OF_MONTH, 1);
+                    cal.set(Calendar.HOUR_OF_DAY, 0);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                    cal.set(Calendar.MILLISECOND, 0);
+
+                    center = cal.getTimeInMillis() + ((365f / 2) * mInterval);
+                    break;
+            }
+
+        }
+
+        zoomAndCenterAnimated(
+                (float) (mXAxis.mAxisRange / (mTimeScale.getXRange() * mInterval)),
+                0,
+                center,
+                1,
+                YAxis.AxisDependency.RIGHT,
+                500
+        );
+
     }
 
     private LineData mLineData;
@@ -83,10 +153,9 @@ public class CustomLineChart extends LineChart {
     protected void init() {
         super.init();
         setup();
-
-        mRenderer = new CustomLineChartRenderer(this, mAnimator, mViewPortHandler);
     }
 
+    private float selectHighlightX = 0;
     private void setup() {
 
         // chart view setting
@@ -100,7 +169,7 @@ public class CustomLineChart extends LineChart {
         setDrawGridBackground(false);
         setHighlightPerDragEnabled(false);
         setHighlightPerTapEnabled(true);
-        setViewPortOffsets(0, 100, 0, 0);     // ここで設定しても効かない
+        super.setViewPortOffsets(0, 100, 0, 0);     // ここで設定しても何故か効かない
 
         // xAxis setting
         mXAxis.setDrawAxisLine(true);
@@ -138,10 +207,23 @@ public class CustomLineChart extends LineChart {
         // set the marker to the chart
         mMarker = new CustomMarkerView(getContext(), R.layout.custom_marker_view_layout);
 
+        mRenderer = new CustomLineChartRenderer(this, mAnimator, mViewPortHandler);
+
+        super.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, Highlight h) {
+                selectHighlightX = h.getX();
+            }
+
+            @Override
+            public void onNothingSelected() {
+                selectHighlightX = 0f;
+            }
+        });
+
     }
 
     public void setData(ArrayList<Entry> values) {
-        
         CustomLineDataSet item = new CustomLineDataSet(values, "LineChart");
 
         item.setDrawIcons(false);
@@ -161,12 +243,13 @@ public class CustomLineChart extends LineChart {
         item.setDrawHighlightIndicators(true);
         item.setDrawIcons(true);
 
+
         setRenderer(new CustomLineChartRenderer(this, getAnimator(), getViewPortHandler()));
 
         //TODO オーバー領域の描画を作成
         float interval = 1000 * 60 * 60 * 24;
-        float xMin = (float)(item.getXMin() - (TimeScale.QUARTER.getTerm() * interval));
-        float xMax = (float)(item.getXMax() + (TimeScale.QUARTER.getTerm() * interval));
+        float xMin = (float)(item.getXMin() - (TimeScale.YEAR.getTerm() * interval));
+        float xMax = (float)(item.getXMax() + (TimeScale.YEAR.getTerm() * interval));
 
         float ave = (item.getYMin() + item.getYMax()) / 2;
         Zone gz = new Zone(ave, ave, mClearColor);
@@ -182,9 +265,7 @@ public class CustomLineChart extends LineChart {
         super.setData(mLineData);
     }
 
-    public void moveToPosition() {
-        fitScreen();    // scaleを初期化しないとだめ
-
+    public void moveToInitPosition() {
         zoom((float) (mXAxis.mAxisRange / (mTimeScale.getXRange() * mInterval)), 0, 0, 0, YAxis.AxisDependency.RIGHT);
         moveViewToX(maxVisibleX());
     }
@@ -249,7 +330,6 @@ public class CustomLineChart extends LineChart {
                 break;
 
             case YEAR:
-                //TODO 実装途中
                 int year = calendar.get(Calendar.YEAR);
                 Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                 cal.set(Calendar.YEAR, year);
@@ -269,5 +349,29 @@ public class CustomLineChart extends LineChart {
         return target - (left + offset);
     }
 
+    @Override
+    public void zoomAndCenterAnimated(float scaleX, float scaleY, float xValue, float yValue, YAxis.AxisDependency axis,
+                                      long duration) {
+        MPPointD origin = getValuesByTouchPoint(mViewPortHandler.contentLeft(), mViewPortHandler.contentTop(), axis);
+
+        Runnable job = new AnimatedZoomJob(
+                mViewPortHandler,
+                this,
+                getTransformer(axis),
+                getAxis(axis), mXAxis.mAxisRange,
+                scaleX,
+                scaleY,
+                mViewPortHandler.getScaleX(),
+                mViewPortHandler.getScaleY(),
+                xValue,
+                yValue,
+                (float) origin.x,
+                (float) origin.y,
+                duration);
+
+        addViewportJob(job);
+
+        MPPointD.recycleInstance(origin);
+    }
 
 }

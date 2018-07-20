@@ -237,8 +237,7 @@ public class DateUtil {
      * @param yyyymmdd
      * @return
      */
-    public static int getLastDay(String yyyymmdd) {
-        Calendar cal = getSettingCalendar(yyyymmdd);
+    public static int getLastDay(Calendar cal) {
         return cal.getActualMaximum(Calendar.DAY_OF_MONTH);
     }
 

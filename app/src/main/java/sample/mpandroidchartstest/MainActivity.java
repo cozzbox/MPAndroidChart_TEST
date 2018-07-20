@@ -57,7 +57,7 @@ import static com.github.mikephil.charting.components.LimitLine.LimitLabelPositi
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int TERM = 900;
+    private static final int TERM = 700;
     private static final int GOAL = 55;
 
     private CustomLineChart mChart;
@@ -77,19 +77,6 @@ public class MainActivity extends AppCompatActivity {
         // グラフ周りのpaddingをオフは、なぜかここでやらないと効かない。。。
         mChart.setViewPortOffsets(0,40,0,0);
 
-        mChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-            @Override
-            public void onValueSelected(Entry e, Highlight h) {
-                // TODO タップのデータ取得
-                //Log.e("XXX", "" + e.getY());
-            }
-
-            @Override
-            public void onNothingSelected() {
-
-            }
-        });
-
         // ゴールライン
         setGoal();
 
@@ -97,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         setData();
 
         //mChart.setTimeScale(TimeScale.WEEK);
-        mChart.moveToPosition();
+        mChart.moveToInitPosition();
 
         // set an alternative background color
         //mChart.setBackgroundColor(Color.LTGRAY);
