@@ -19,6 +19,7 @@ import com.github.mikephil.charting.utils.MPPointD;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import sample.mpandroidchartstest.DateUtil;
 import sample.mpandroidchartstest.R;
@@ -38,25 +39,17 @@ public class CustomLineChart extends LineChart {
     private static final int mGridColor = Color.parseColor("#E3E2E2");
     private static final int mClearColor = Color.parseColor("#FF000000");
 
-    private static final float mInterval = 1000 * 60 * 60 * 24;
+    private static final long mInterval = 1000 * 60 * 60 * 24;
 
     private TimeScale mTimeScale = TimeScale.WEEK;
+    public TimeScale getTimeScale() { return mTimeScale; }
     public void setTimeScale(TimeScale timeScale) {
         this.mTimeScale = timeScale;
         if (mXAxisRenderer instanceof CustomXAxisRenderer) {
             ((CustomXAxisRenderer) mXAxisRenderer).mTimeScale = mTimeScale;
         }
 
-        super.mXAxis = this.mXAxis;
-
-        zoomAndCenterAnimated(
-                (float) (mXAxis.mAxisRange / (mTimeScale.getXRange() * mInterval)),
-                0,
-                0,
-                1,
-                YAxis.AxisDependency.RIGHT,
-                50);
-
+        moveToPosition();
     }
 
     private LineData mLineData;
@@ -148,7 +141,7 @@ public class CustomLineChart extends LineChart {
     }
 
     public void setData(ArrayList<Entry> values) {
-
+        
         CustomLineDataSet item = new CustomLineDataSet(values, "LineChart");
 
         item.setDrawIcons(false);
@@ -189,8 +182,10 @@ public class CustomLineChart extends LineChart {
         super.setData(mLineData);
     }
 
-    public void moveToInitPosition() {
-        zoom((float) (mXAxis.mAxisRange / (mTimeScale.getXRange() * mInterval)), 0, 0, 0);
+    public void moveToPosition() {
+        fitScreen();    // scaleを初期化しないとだめ
+
+        zoom((float) (mXAxis.mAxisRange / (mTimeScale.getXRange() * mInterval)), 0, 0, 0, YAxis.AxisDependency.RIGHT);
         moveViewToX(maxVisibleX());
     }
 
@@ -225,7 +220,13 @@ public class CustomLineChart extends LineChart {
 
     private float maxVisibleX() {
         if (mLineData == null) return 0f;
-        Calendar calendar = Calendar.getInstance();
+
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
         return visibleOffset(calendar);
     }
     private float visibleOffset(Calendar calendar) {
@@ -237,19 +238,32 @@ public class CustomLineChart extends LineChart {
 
         switch (mTimeScale) {
             case WEEK:
-                left = (calendar.get(Calendar.DAY_OF_WEEK) -1) * mInterval;
-                offset = (float) (mTimeScale.getXRange() - mTimeScale.getTerm()) /2;
+                left = (calendar.get(Calendar.DAY_OF_WEEK) -2) * mInterval;
+                offset = (float) ((mTimeScale.getXRange() - mTimeScale.getTerm()) * mInterval) /2;
                 break;
 
             case MONTH:
             case QUARTER:
-                //TODO 動作未確認
-                left = calendar.get(Calendar.DAY_OF_MONTH) -1;
-                offset = (float) (mTimeScale.getXRange() - mTimeScale.getTerm()) /2;
+                left = (calendar.get(Calendar.DAY_OF_MONTH) -1) * mInterval;
+                offset = (float) ((mTimeScale.getXRange() - mTimeScale.getTerm()) * mInterval) /2;
                 break;
 
             case YEAR:
                 //TODO 実装途中
+                int year = calendar.get(Calendar.YEAR);
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                cal.set(Calendar.YEAR, year);
+                cal.set(Calendar.MONTH, 0);
+                cal.set(Calendar.DAY_OF_MONTH, 1);
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                cal.set(Calendar.SECOND, 0);
+                cal.set(Calendar.MILLISECOND, 0);
+
+                int days = (Math.abs(DateUtil.getDiffDays(calendar, cal)));
+
+                left = days * mInterval;
+                offset = (float) ((mTimeScale.getXRange() - mTimeScale.getTerm()) * mInterval) /2;
                 break;
         }
         return target - (left + offset);

@@ -57,7 +57,7 @@ import static com.github.mikephil.charting.components.LimitLine.LimitLabelPositi
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int TERM = 180;
+    private static final int TERM = 900;
     private static final int GOAL = 55;
 
     private CustomLineChart mChart;
@@ -96,7 +96,8 @@ public class MainActivity extends AppCompatActivity {
         // データ・セット
         setData();
 
-        mChart.moveToInitPosition();
+        //mChart.setTimeScale(TimeScale.WEEK);
+        mChart.moveToPosition();
 
         // set an alternative background color
         //mChart.setBackgroundColor(Color.LTGRAY);
@@ -170,29 +171,29 @@ public class MainActivity extends AppCompatActivity {
         btnWeek.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //if (mChart.getTimeScale() == TimeScale.WEEK) return;
                 mChart.setTimeScale(TimeScale.WEEK);
-                mChart.invalidate();
             }
         });
         btnMonth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mChart.getTimeScale() == TimeScale.MONTH) return;
                 mChart.setTimeScale(TimeScale.MONTH);
-                mChart.invalidate();
             }
         });
         btnQuarter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mChart.getTimeScale() == TimeScale.QUARTER) return;
                 mChart.setTimeScale(TimeScale.QUARTER);
-                mChart.invalidate();
             }
         });
         btnYear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mChart.getTimeScale() == TimeScale.YEAR) return;
                 mChart.setTimeScale(TimeScale.YEAR);
-                mChart.invalidate();
             }
         });
 
@@ -248,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
         graphBody.goal = GOAL + "";
 
         List<GraphBody.Weight> weights = new ArrayList<>();
-        Calendar cal = DateUtil.getSettingCalendar("20171228");
+        Calendar cal = DateUtil.getSettingCalendar("20161228");
 
         for (int i=0; i<entryNum; i++) {
 
