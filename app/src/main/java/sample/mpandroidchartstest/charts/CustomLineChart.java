@@ -22,6 +22,7 @@ import com.github.mikephil.charting.utils.MPPointD;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import sample.mpandroidchartstest.DateUtil;
@@ -48,6 +49,7 @@ public class CustomLineChart extends LineChart {
     public TimeScale getTimeScale() { return mTimeScale; }
     public void setTimeScale(TimeScale timeScale) {
         this.mTimeScale = timeScale;
+
         if (mXAxisRenderer instanceof CustomXAxisRenderer) {
             ((CustomXAxisRenderer) mXAxisRenderer).mTimeScale = mTimeScale;
         }
@@ -55,6 +57,19 @@ public class CustomLineChart extends LineChart {
         // アニメーションを完全に止めてからscaleを変更しないと上手く動かない
         if (mChartTouchListener instanceof BarLineChartTouchListener) {
             ((BarLineChartTouchListener) mChartTouchListener).stopDeceleration();
+        }
+
+        List<ILineDataSet> listDataSets = getData().getDataSets();
+        for(ILineDataSet item : listDataSets) {
+            if (item instanceof LineDataSet) {
+                LineDataSet data = (LineDataSet) item;
+                data.setDrawCircles(mTimeScale.drawCircles(mTimeScale));
+                data.setDrawCircleHole(mTimeScale.drawCircles(mTimeScale));
+
+                //TODO: おそらくライブラリのDP->PX変換がバグってるので諦める
+//                data.setCircleRadius(mTimeScale.setCircleRadius(mTimeScale));
+//                data.setCircleHoleRadius(mTimeScale.circleHoleRadius(mTimeScale));
+            }
         }
 
         float center = 0f;
@@ -169,7 +184,7 @@ public class CustomLineChart extends LineChart {
         setDrawGridBackground(false);
         setHighlightPerDragEnabled(false);
         setHighlightPerTapEnabled(true);
-        super.setViewPortOffsets(0, 100, 0, 0);     // ここで設定しても何故か効かない
+        super.setViewPortOffsets(0, 50, 0, 0);     // ここで設定しても何故か効かない
 
         // xAxis setting
         mXAxis.setDrawAxisLine(true);
