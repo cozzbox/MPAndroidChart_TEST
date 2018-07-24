@@ -101,52 +101,52 @@ public class MainActivity extends AppCompatActivity {
         //mChart.setScaleMinima(0.5f, 0.5f);
         //mChart.setAutoScaleMinMaxEnabled(true);
 
-        mChart.setOnChartGestureListener(new OnChartGestureListener() {
-            @Override
-            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
-
-            }
-
-            @Override
-            public void onChartGestureEnd(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
-                switch (lastPerformedGesture) {
-                    case PINCH_ZOOM:
-                        //TODO ここでズームし直す
-                        Log.d("TEST:", "PINCH_ZOOM");
-                        break;
-                }
-            }
-
-            @Override
-            public void onChartLongPressed(MotionEvent me) {
-
-            }
-
-            @Override
-            public void onChartDoubleTapped(MotionEvent me) {
-
-            }
-
-            @Override
-            public void onChartSingleTapped(MotionEvent me) {
-
-            }
-
-            @Override
-            public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {
-
-            }
-
-            @Override
-            public void onChartScale(MotionEvent me, float scaleX, float scaleY) {
-
-            }
-
-            @Override
-            public void onChartTranslate(MotionEvent me, float dX, float dY) {
-
-            }
-        });
+//        mChart.setOnChartGestureListener(new OnChartGestureListener() {
+//            @Override
+//            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
+//
+//            }
+//
+//            @Override
+//            public void onChartGestureEnd(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
+//                switch (lastPerformedGesture) {
+//                    case PINCH_ZOOM:
+//                        //TODO ここでズームし直す
+//                        Log.d("TEST:", "PINCH_ZOOM");
+//                        break;
+//                }
+//            }
+//
+//            @Override
+//            public void onChartLongPressed(MotionEvent me) {
+//
+//            }
+//
+//            @Override
+//            public void onChartDoubleTapped(MotionEvent me) {
+//
+//            }
+//
+//            @Override
+//            public void onChartSingleTapped(MotionEvent me) {
+//
+//            }
+//
+//            @Override
+//            public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {
+//
+//            }
+//
+//            @Override
+//            public void onChartScale(MotionEvent me, float scaleX, float scaleY) {
+//
+//            }
+//
+//            @Override
+//            public void onChartTranslate(MotionEvent me, float dX, float dY) {
+//
+//            }
+//        });
 
 
         // ボタンイベント

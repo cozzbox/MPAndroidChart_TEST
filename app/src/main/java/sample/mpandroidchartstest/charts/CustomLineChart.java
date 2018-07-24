@@ -3,8 +3,10 @@ package sample.mpandroidchartstest.charts;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
@@ -16,8 +18,12 @@ import com.github.mikephil.charting.interfaces.datasets.IDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.jobs.AnimatedZoomJob;
 import com.github.mikephil.charting.listener.BarLineChartTouchListener;
+import com.github.mikephil.charting.listener.ChartTouchListener;
+import com.github.mikephil.charting.listener.OnChartGestureListener;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.MPPointD;
+import com.github.mikephil.charting.utils.MPPointF;
+import com.github.mikephil.charting.utils.ViewPortHandler;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -55,9 +61,7 @@ public class CustomLineChart extends LineChart {
         }
 
         // アニメーションを完全に止めてからscaleを変更しないと上手く動かない
-        if (mChartTouchListener instanceof BarLineChartTouchListener) {
-            ((BarLineChartTouchListener) mChartTouchListener).stopDeceleration();
-        }
+        stopAnimated();
 
         List<ILineDataSet> listDataSets = getData().getDataSets();
         for(ILineDataSet item : listDataSets) {
@@ -66,7 +70,7 @@ public class CustomLineChart extends LineChart {
                 data.setDrawCircles(mTimeScale.drawCircles(mTimeScale));
                 data.setDrawCircleHole(mTimeScale.drawCircles(mTimeScale));
 
-                //TODO: おそらくライブラリのDP->PX変換がバグってるので諦める
+                //TODO: ライブラリのDP->PX変換がバグってるので諦める
 //                data.setCircleRadius(mTimeScale.setCircleRadius(mTimeScale));
 //                data.setCircleHoleRadius(mTimeScale.circleHoleRadius(mTimeScale));
             }
@@ -176,8 +180,9 @@ public class CustomLineChart extends LineChart {
         // chart view setting
         getDescription().setEnabled(false);
         getLegend().setEnabled(false);
+        setScaleEnabled(false);
         setScaleXEnabled(true);
-        setScaleYEnabled(true);
+        setScaleYEnabled(false);
         setPinchZoom(true);
         setDoubleTapToZoomEnabled(false);
         setAutoScaleMinMaxEnabled(true);
@@ -224,6 +229,7 @@ public class CustomLineChart extends LineChart {
 
         mRenderer = new CustomLineChartRenderer(this, mAnimator, mViewPortHandler);
 
+        // select chart data
         super.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
@@ -236,7 +242,61 @@ public class CustomLineChart extends LineChart {
             }
         });
 
+        // custom gesture
+        super.setOnChartGestureListener(new OnChartGestureListener() {
+            @Override
+            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
+                stopAnimated();
+            }
+
+            @Override
+            public void onChartGestureEnd(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
+                switch (lastPerformedGesture) {
+                    case X_ZOOM:
+                        if (getVisibleXRange() < (TimeScale.WEEK.getXRange()) * mInterval) {
+                            // over zoom in
+                            setTimeScale(TimeScale.WEEK);
+                        } else if (getVisibleXRange() > TimeScale.YEAR.getXRange() * mInterval) {
+                            // over zoom out
+                            setTimeScale(TimeScale.YEAR);
+                        } else if (getVisibleXRange() < mTimeScale.getXRange() * mInterval) {
+                            // zoom in
+                            setTimeScale(mTimeScale.zoomIn(getTimeScale()));
+                        } else if (getVisibleXRange() > mTimeScale.getXRange() * mInterval) {
+                            // zoom out
+                            setTimeScale(mTimeScale.zoomOut(getTimeScale()));
+                        }
+                        break;
+                }
+            }
+
+            @Override
+            public void onChartLongPressed(MotionEvent me) {}
+            @Override
+            public void onChartDoubleTapped(MotionEvent me) {}
+            @Override
+            public void onChartSingleTapped(MotionEvent me) {}
+            @Override
+            public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {}
+
+            @Override
+            public void onChartScale(MotionEvent me, float x, float y) {
+                // TODO: ピンチ途中はここが呼ばれる
+                Log.d("call","onChanrtScale");
+            }
+
+            @Override
+            public void onChartTranslate(MotionEvent me, float dX, float dY) {
+                Log.d("call","onChartTranslate");
+                // TODO: ドラッグ中はここが呼ばれる
+            }
+        });
+
     }
+
+
+
+
 
     public void setData(ArrayList<Entry> values) {
         CustomLineDataSet item = new CustomLineDataSet(values, "LineChart");
@@ -284,35 +344,6 @@ public class CustomLineChart extends LineChart {
         zoom((float) (mXAxis.mAxisRange / (mTimeScale.getXRange() * mInterval)), 0, 0, 0, YAxis.AxisDependency.RIGHT);
         moveViewToX(maxVisibleX());
     }
-
-    /*
-    // calculate visible area
-    private var maxVisibleX: Double {
-        guard _data != nil else { return 0 }
-        let today = Date()
-        return visibleOffset(date: today)
-    }
-    private var minVisibleX: Double {
-        guard let data = _data else { return 0 }
-        let earliestDay = Date.timeIntervalSinceToday(timeInterval: data.availableXMin * Date.aDayTimeInterval)
-        return visibleOffset(date: earliestDay) + data.availableXMin
-    }
-    private func visibleOffset(date: Date) -> Double {
-        let left, offset: Double
-        switch timeScale {
-        case .week:
-            left = Double(Calendar.getWeekday(date).value)
-            offset = (timeScale.xRange - timeScale.double) / 2
-        case .month, .quarter:
-            left = Double(Calendar.getDay(date) - 1)
-            offset = (timeScale.xRange - Double(Calendar.getNumberOfDaysIn(.month, date: date))) / 2
-        case .year:
-            left = Double(Calendar.getDaysLeftInYear(date) - 1)
-            offset = (timeScale.xRange - timeScale.double) / 2
-        }
-        return -left-offset
-    }
-     */
 
     private float maxVisibleX() {
         if (mLineData == null) return 0f;
@@ -387,6 +418,13 @@ public class CustomLineChart extends LineChart {
         addViewportJob(job);
 
         MPPointD.recycleInstance(origin);
+    }
+
+    private void stopAnimated() {
+        // アニメーションを完全に止めてからscaleを変更しないと上手く動かない
+        if (mChartTouchListener instanceof BarLineChartTouchListener) {
+            ((BarLineChartTouchListener) mChartTouchListener).stopDeceleration();
+        }
     }
 
 }

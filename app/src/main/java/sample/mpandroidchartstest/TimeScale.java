@@ -36,41 +36,23 @@ public enum TimeScale {
         }
     }
 
-    public float setCircleRadius(TimeScale timeScale) {
-        float radius = 0f;
+    public TimeScale zoomIn(TimeScale timeScale) {
         switch (timeScale) {
+            case YEAR: return QUARTER;
+            case QUARTER: return MONTH;
+            case MONTH: return WEEK;
             case WEEK:
-                radius = 10f;
-                break;
-
-            case MONTH:
-                radius = 5f;
-                break;
-
-            case QUARTER:
-            case YEAR:
-                radius = 0;
+            default: return WEEK;
         }
-
-        return radius;
     }
 
-    public float circleHoleRadius(TimeScale timeScale) {
-        float radius = 0f;
+    public TimeScale zoomOut(TimeScale timeScale) {
         switch (timeScale) {
-            case WEEK:
-                radius = 10f;
-                break;
-
-            case MONTH:
-            case QUARTER:
-                radius = 2.5f;
-                break;
-
+            case WEEK: return MONTH;
+            case MONTH: return QUARTER;
+            case QUARTER: return YEAR;
             case YEAR:
-                radius = 0;
+            default: return YEAR;
         }
-
-        return radius;
     }
 }
