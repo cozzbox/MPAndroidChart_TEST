@@ -82,7 +82,6 @@ public class CustomLineChart extends LineChart {
                 LineDataSet data = (LineDataSet) item;
                 data.setDrawCircles(mTimeScale.drawCircles(mTimeScale));
                 data.setDrawCircleHole(mTimeScale.drawCircles(mTimeScale));
-
                 data.setLineWidth(mTimeScale.getChartLineSize(mTimeScale));
 
                 //TODO: ライブラリのDP->PX変換がバグってるので諦める
@@ -409,21 +408,9 @@ public class CustomLineChart extends LineChart {
                                       long duration) {
         MPPointD origin = getValuesByTouchPoint(mViewPortHandler.contentLeft(), mViewPortHandler.contentTop(), axis);
 
-        Runnable job = new AnimatedZoomJob(
-                mViewPortHandler,
-                this,
-                getTransformer(axis),
-                getAxis(axis), mXAxis.mAxisRange,
-                scaleX,
-                scaleY,
-                mViewPortHandler.getScaleX(),
-                mViewPortHandler.getScaleY(),
-                xValue,
-                yValue,
-                (float) origin.x,
-                (float) origin.y,
-                duration);
-
+        Runnable job = new AnimatedZoomJob(mViewPortHandler, this, getTransformer(axis), getAxis(axis), mXAxis.mAxisRange,
+                scaleX, scaleY, mViewPortHandler.getScaleX(), mViewPortHandler.getScaleY(),
+                xValue, yValue, (float) origin.x, (float) origin.y, duration);
         addViewportJob(job);
 
         MPPointD.recycleInstance(origin);
@@ -444,11 +431,18 @@ public class CustomLineChart extends LineChart {
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+
             stopAnimated();
+
             if (mTouchMode == Y_ZOOM) mTouchMode = X_ZOOM;
 
             super.onTouch(v, event);
             return true; // indicate event was handled
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            return false;
         }
 
     }
