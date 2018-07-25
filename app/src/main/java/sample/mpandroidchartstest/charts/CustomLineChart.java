@@ -4,16 +4,26 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.view.VelocityTracker;
+import android.view.View;
+import android.view.animation.AnimationUtils;
 
+import com.github.mikephil.charting.charts.BarLineChartBase;
+import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarLineScatterCandleBubbleData;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.IBarLineScatterCandleBubbleDataSet;
 import com.github.mikephil.charting.interfaces.datasets.IDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.jobs.AnimatedZoomJob;
@@ -23,6 +33,7 @@ import com.github.mikephil.charting.listener.OnChartGestureListener;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.MPPointD;
 import com.github.mikephil.charting.utils.MPPointF;
+import com.github.mikephil.charting.utils.Utils;
 import com.github.mikephil.charting.utils.ViewPortHandler;
 
 import java.util.ArrayList;
@@ -50,6 +61,8 @@ public class CustomLineChart extends LineChart {
     private static final int mClearColor = Color.parseColor("#FF000000");
 
     private static final long mInterval = 1000 * 60 * 60 * 24;
+
+    private Context mContext;
 
     private TimeScale mTimeScale = TimeScale.WEEK;
     public TimeScale getTimeScale() { return mTimeScale; }
@@ -158,14 +171,17 @@ public class CustomLineChart extends LineChart {
 
     public CustomLineChart(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        mContext = context;
     }
 
     public CustomLineChart(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
     }
 
     public CustomLineChart(Context context) {
         super(context);
+        mContext = context;
     }
 
     @Override
@@ -242,6 +258,9 @@ public class CustomLineChart extends LineChart {
             }
         });
 
+        // Y方向のジェスチャーをX方向に変換する
+        mChartTouchListener = new CustomBarLineChartTouchListener(this, mViewPortHandler.getMatrixTouch(), 3f);
+
         // custom gesture
         super.setOnChartGestureListener(new OnChartGestureListener() {
             @Override
@@ -278,25 +297,13 @@ public class CustomLineChart extends LineChart {
             public void onChartSingleTapped(MotionEvent me) {}
             @Override
             public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {}
-
             @Override
-            public void onChartScale(MotionEvent me, float x, float y) {
-                // TODO: ピンチ途中はここが呼ばれる
-                Log.d("call","onChanrtScale");
-            }
-
+            public void onChartScale(MotionEvent me, float x, float y) {}
             @Override
-            public void onChartTranslate(MotionEvent me, float dX, float dY) {
-                Log.d("call","onChartTranslate");
-                // TODO: ドラッグ中はここが呼ばれる
-            }
+            public void onChartTranslate(MotionEvent me, float dX, float dY) {}
         });
 
     }
-
-
-
-
 
     public void setData(ArrayList<Entry> values) {
         CustomLineDataSet item = new CustomLineDataSet(values, "LineChart");
@@ -427,4 +434,20 @@ public class CustomLineChart extends LineChart {
         }
     }
 
+
+    private class CustomBarLineChartTouchListener extends BarLineChartTouchListener {
+        public CustomBarLineChartTouchListener(BarLineChartBase<? extends BarLineScatterCandleBubbleData<? extends IBarLineScatterCandleBubbleDataSet<? extends Entry>>> chart, Matrix touchMatrix, float dragTriggerDistance) {
+            super(chart, touchMatrix, dragTriggerDistance);
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            stopAnimated();
+            if (mTouchMode == Y_ZOOM) mTouchMode = X_ZOOM;
+
+            super.onTouch(v, event);
+            return true; // indicate event was handled
+        }
+
+    }
 }
