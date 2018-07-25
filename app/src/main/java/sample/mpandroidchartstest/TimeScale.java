@@ -36,6 +36,16 @@ public enum TimeScale {
         }
     }
 
+    public float getChartLineSize(TimeScale timeScale) {
+        switch (timeScale) {
+            case WEEK: return 2.5f;
+            case MONTH: return 2.2f;
+            case QUARTER: return 2.0f;
+            case YEAR:
+            default: return 1.5f;
+        }
+    }
+
     public TimeScale zoomIn(TimeScale timeScale) {
         switch (timeScale) {
             case YEAR: return QUARTER;

@@ -83,6 +83,8 @@ public class CustomLineChart extends LineChart {
                 data.setDrawCircles(mTimeScale.drawCircles(mTimeScale));
                 data.setDrawCircleHole(mTimeScale.drawCircles(mTimeScale));
 
+                data.setLineWidth(mTimeScale.getChartLineSize(mTimeScale));
+
                 //TODO: ライブラリのDP->PX変換がバグってるので諦める
 //                data.setCircleRadius(mTimeScale.setCircleRadius(mTimeScale));
 //                data.setCircleHoleRadius(mTimeScale.circleHoleRadius(mTimeScale));
