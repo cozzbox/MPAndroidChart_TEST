@@ -5,9 +5,12 @@ import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
+import sample.mpandroidchartstest.DateUtil;
 import sample.mpandroidchartstest.TimeScale;
 
 public class CustomAxisFormatter implements IAxisValueFormatter {
@@ -16,15 +19,11 @@ public class CustomAxisFormatter implements IAxisValueFormatter {
     private Date mDate;
 
     public TimeScale mTimeScale = TimeScale.WEEK;
-    public long mReference = 0;
 
     public CustomAxisFormatter() {
         mDateFormat = new SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH);
         mDate = new Date();
-    }
 
-    public void setReference(long reference) {
-        this.mReference = reference;
     }
 
     @Override
@@ -38,17 +37,21 @@ public class CustomAxisFormatter implements IAxisValueFormatter {
 
         mDateFormat = getDateFormat(mTimeScale);
 
-        timestamp += mReference;
+        //timestamp += mReference;
 
         switch (mTimeScale) {
+
             case WEEK:
 
                 mDate.setTime(timestamp);
-                label += mDateFormat.format(mDate);
-                label += " - ";
+                String from = mDateFormat.format(mDate);
+
                 timestamp += (24 * 60 * 60 * 1000) * 6;
                 mDate.setTime(timestamp);
-                label += mDateFormat.format(mDate);
+                String to = mDateFormat.format(mDate);
+
+                label = String.format("%1$s - %2$s", from, to);
+
                 break;
 
             case MONTH:

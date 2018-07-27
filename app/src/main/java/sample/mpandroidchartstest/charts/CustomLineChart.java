@@ -97,6 +97,7 @@ public class CustomLineChart extends LineChart {
             center = selectHighlightX;
 
         } else {
+
             center = (getLowestVisibleX() + getHighestVisibleX()) / 2;
 
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
