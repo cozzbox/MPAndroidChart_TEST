@@ -26,6 +26,7 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarLineScatterCandleBubbleDataSet;
 import com.github.mikephil.charting.interfaces.datasets.IDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.jobs.AnimatedMoveViewJob;
 import com.github.mikephil.charting.jobs.AnimatedZoomJob;
 import com.github.mikephil.charting.listener.BarLineChartTouchListener;
 import com.github.mikephil.charting.listener.ChartTouchListener;
@@ -155,8 +156,6 @@ public class CustomLineChart extends LineChart {
 
     }
 
-    private LineData mLineData;
-
 //    private long mReference = 0;
 //    public void setReference(long reference) {
 //        this.mReference = reference;
@@ -265,9 +264,7 @@ public class CustomLineChart extends LineChart {
         // custom gesture
         super.setOnChartGestureListener(new OnChartGestureListener() {
             @Override
-            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
-                stopAnimated();
-            }
+            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {}
 
             @Override
             public void onChartGestureEnd(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
@@ -286,6 +283,7 @@ public class CustomLineChart extends LineChart {
                             // zoom out
                             setTimeScale(mTimeScale.zoomOut(getTimeScale()));
                         }
+                        stopAnimated();
                         break;
                 }
             }
@@ -306,7 +304,10 @@ public class CustomLineChart extends LineChart {
 
     }
 
+    private LineDataSet mLineDataSet;
+    private LineData mLineData;
     public void setData(ArrayList<Entry> values) {
+
         CustomLineDataSet item = new CustomLineDataSet(values, "LineChart");
 
         item.setDrawIcons(false);
@@ -326,6 +327,7 @@ public class CustomLineChart extends LineChart {
         item.setDrawHighlightIndicators(true);
         item.setDrawIcons(true);
 
+        mLineDataSet = item;
 
         setRenderer(new CustomLineChartRenderer(this, getAnimator(), getViewPortHandler()));
 
@@ -354,7 +356,7 @@ public class CustomLineChart extends LineChart {
     }
 
     private float maxVisibleX() {
-        if (mLineData == null) return 0f;
+        if (mLineDataSet == null) return 0f;
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -364,6 +366,22 @@ public class CustomLineChart extends LineChart {
 
         return visibleOffset(calendar);
     }
+
+    private float minVisibleX() {
+        if (mLineDataSet == null) return 0f;
+
+        float minData= mLineDataSet.getXMin();
+
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar.setTimeInMillis((long) minData);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        return visibleOffset(calendar);
+    }
+
     private float visibleOffset(Calendar calendar) {
         float target, left, offset;
 
@@ -423,6 +441,12 @@ public class CustomLineChart extends LineChart {
         }
     }
 
+    @Override
+    public void moveViewToAnimated(float xValue, float yValue, YAxis.AxisDependency axis, long duration) {
+        stopAnimated();
+        super.moveViewToAnimated(xValue, yValue, axis, duration);
+    }
+
 
     private class CustomBarLineChartTouchListener extends BarLineChartTouchListener {
         public CustomBarLineChartTouchListener(BarLineChartBase<? extends BarLineScatterCandleBubbleData<? extends IBarLineScatterCandleBubbleDataSet<? extends Entry>>> chart, Matrix touchMatrix, float dragTriggerDistance) {
@@ -432,18 +456,37 @@ public class CustomLineChart extends LineChart {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
 
-            stopAnimated();
-
+            // Y_ZOOMはX_ZOOに置き換える
             if (mTouchMode == Y_ZOOM) mTouchMode = X_ZOOM;
 
             super.onTouch(v, event);
+
+            switch (event.getAction() & MotionEvent.ACTION_MASK) {
+
+                // 指が離されたタイミングでオーバー表示を監視する
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+
+                    float currentOriginX = getHighestVisibleX() - getVisibleXRange();
+
+                    if (currentOriginX > maxVisibleX()) {
+                        moveViewToAnimated(maxVisibleX(), 1, YAxis.AxisDependency.RIGHT, 500);
+                    } else if (currentOriginX < minVisibleX()) {
+                        moveViewToAnimated(minVisibleX(), 1, YAxis.AxisDependency.RIGHT, 500);
+                    }
+
+                    break;
+            }
+
             return true; // indicate event was handled
         }
 
         @Override
-        public boolean onDoubleTap(MotionEvent e) {
+        public boolean onDoubleTap(MotionEvent e) { // ダブルタップ無効化
             return false;
         }
 
     }
+
+
 }

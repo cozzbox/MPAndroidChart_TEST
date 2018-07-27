@@ -57,7 +57,7 @@ import static com.github.mikephil.charting.components.LimitLine.LimitLabelPositi
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int TERM = 700;
+    private static final int TERM = 365;
     private static final int GOAL = 55;
 
     private CustomLineChart mChart;
@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
         // データ・セット
         setData();
 
-        //mChart.setTimeScale(TimeScale.WEEK);
         mChart.moveToInitPosition();
 
         // set an alternative background color
@@ -100,54 +99,6 @@ public class MainActivity extends AppCompatActivity {
 
         //mChart.setScaleMinima(0.5f, 0.5f);
         //mChart.setAutoScaleMinMaxEnabled(true);
-
-//        mChart.setOnChartGestureListener(new OnChartGestureListener() {
-//            @Override
-//            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
-//
-//            }
-//
-//            @Override
-//            public void onChartGestureEnd(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
-//                switch (lastPerformedGesture) {
-//                    case PINCH_ZOOM:
-//                        //TODO ここでズームし直す
-//                        Log.d("TEST:", "PINCH_ZOOM");
-//                        break;
-//                }
-//            }
-//
-//            @Override
-//            public void onChartLongPressed(MotionEvent me) {
-//
-//            }
-//
-//            @Override
-//            public void onChartDoubleTapped(MotionEvent me) {
-//
-//            }
-//
-//            @Override
-//            public void onChartSingleTapped(MotionEvent me) {
-//
-//            }
-//
-//            @Override
-//            public void onChartFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {
-//
-//            }
-//
-//            @Override
-//            public void onChartScale(MotionEvent me, float scaleX, float scaleY) {
-//
-//            }
-//
-//            @Override
-//            public void onChartTranslate(MotionEvent me, float dX, float dY) {
-//
-//            }
-//        });
-
 
         // ボタンイベント
         Button btnWeek = (Button) findViewById(R.id.week);
@@ -236,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         graphBody.goal = GOAL + "";
 
         List<GraphBody.Weight> weights = new ArrayList<>();
-        Calendar cal = DateUtil.getSettingCalendar("20161228");
+        Calendar cal = DateUtil.getSettingCalendar("20170720");
 
         for (int i=0; i<entryNum; i++) {
 
